@@ -13,13 +13,16 @@ const PORT = process.env.PORT || 3000;
 // Setup lowdb
 const dbFile = path.join(__dirname, "db.json");
 const adapter = new JSONFile(dbFile);
-const db = new Low(adapter);
+const defaultData = { users: [] }; // <- default data
+const db = new Low(adapter, defaultData);
+
 
 // Initialize database
 (async () => {
   await db.read();
-  db.data = db.data || { users: [] };
+  // db.data is already set to defaultData if file is empty
 })();
+
 
 // Middleware
 app.use(express.json());
