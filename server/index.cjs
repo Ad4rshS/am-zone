@@ -1,15 +1,25 @@
 const express = require("express");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const { Low, JSONFile } = require("lowdb");
 const cors = require("cors");
+
+// Correct CommonJS import for lowdb v7+
+const { Low } = require("lowdb");
+const { JSONFile } = require("lowdb/node");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Setup lowdb
-const db = new Low(new JSONFile(path.join(__dirname, "db.json")));
-db.data = db.data || { users: [] };
+const dbFile = path.join(__dirname, "db.json");
+const adapter = new JSONFile(dbFile);
+const db = new Low(adapter);
+
+// Initialize database
+(async () => {
+  await db.read();
+  db.data = db.data || { users: [] };
+})();
 
 // Middleware
 app.use(express.json());
@@ -17,6 +27,7 @@ app.use(cors()); // allow requests from frontend
 
 // Signup endpoint
 app.post("/signup", async (req, res) => {
+  await db.read();
   const { username, password } = req.body;
   const existingUser = db.data.users.find(u => u.username === username);
   if (existingUser) return res.status(400).json({ message: "User already exists" });
@@ -29,6 +40,7 @@ app.post("/signup", async (req, res) => {
 
 // Signin endpoint
 app.post("/signin", async (req, res) => {
+  await db.read();
   const { username, password } = req.body;
   const user = db.data.users.find(u => u.username === username);
   if (!user) return res.status(400).json({ message: "Invalid credentials" });
