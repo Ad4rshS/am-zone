@@ -11,18 +11,18 @@ const PORT = process.env.PORT || 3000;
 // Setup lowdb
 const dbFile = path.join(__dirname, "db.json");
 const adapter = new JSONFile(dbFile);
-const db = new Low(adapter, { users: [], createdVaccinesCount: 0 }); // ✅ Default data
+const db = new Low(adapter, { users: [], createdVaccinesCount: 0 });
 
 // Initialize database with default data and admin account
 (async () => {
   await db.read();
   db.data ||= { users: [], createdVaccinesCount: 0 };
 
-  // Add admin if missing
-  const adminUser = db.data.users.find(u => u.username === "admin");
+  // Add admin if missing (using email instead of username)
+  const adminUser = db.data.users.find(u => u.email === "adarsh@amzone.com");
   if (!adminUser) {
-    const hashedPassword = await bcrypt.hash("amzone", 10);
-    db.data.users.push({ username: "admin", password: hashedPassword, role: "admin" });
+    const hashedPassword = await bcrypt.hash("password123", 10);
+    db.data.users.push({ email: "adarsh@amzone.com", password: hashedPassword, role: "admin" });
     await db.write();
     console.log("Admin account created");
   }
@@ -35,30 +35,30 @@ app.use(cors());
 // ===== API ROUTES =====
 app.post("/api/signup", async (req, res) => {
   await db.read();
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password required" });
   }
 
-  const existingUser = db.data.users.find(u => u.username === username);
+  const existingUser = db.data.users.find(u => u.email === email);
   if (existingUser) return res.status(400).json({ message: "User already exists" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  db.data.users.push({ username, password: hashedPassword, role: "user" });
+  db.data.users.push({ email, password: hashedPassword, role: "user" });
   await db.write();
   res.json({ message: "Signup successful" });
 });
 
 app.post("/api/signin", async (req, res) => {
   await db.read();
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password required" });
   }
 
-  const user = db.data.users.find(u => u.username === username);
+  const user = db.data.users.find(u => u.email === email);
   if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
   const valid = await bcrypt.compare(password, user.password);
@@ -68,7 +68,6 @@ app.post("/api/signin", async (req, res) => {
 });
 
 // ===== SERVE VITE FRONTEND =====
-// If index.cjs is inside "server" folder:
 app.use(express.static(path.join(__dirname, "../dist")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../dist", "index.html"));
