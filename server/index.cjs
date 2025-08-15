@@ -11,22 +11,26 @@ const PORT = process.env.PORT || 3000;
 // Setup lowdb
 const dbFile = path.join(__dirname, "db.json");
 const adapter = new JSONFile(dbFile);
-const db = new Low(adapter);
+const db = new Low(adapter, { users: [], createdVaccinesCount: 0 }); // ✅ Default data here
+
 
 // Initialize database with default data and admin account
 (async () => {
   await db.read();
+
+  // If db is empty, set defaults
   db.data ||= { users: [], createdVaccinesCount: 0 };
 
   // Add admin if missing
   const adminUser = db.data.users.find(u => u.username === "admin");
   if (!adminUser) {
-    const hashedPassword = await bcrypt.hash("amzone", 10); // replace with your real password
+    const hashedPassword = await bcrypt.hash("amzone", 10);
     db.data.users.push({ username: "admin", password: hashedPassword, role: "admin" });
     await db.write();
     console.log("Admin account created");
   }
 })();
+
 
 // Middleware
 app.use(express.json());
