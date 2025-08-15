@@ -64,7 +64,12 @@ app.post("/api/signin", async (req, res) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(400).json({ message: "Invalid credentials" });
 
-  res.json({ message: "Signin successful", role: user.role });
+  res.json({ 
+  message: "Signin successful", 
+  role: user.role, 
+  email: user.email 
+});
+
 });
 
 // ===== SERVE VITE FRONTEND =====
