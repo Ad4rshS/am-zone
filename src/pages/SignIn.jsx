@@ -4,14 +4,12 @@ import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'
-import { useAuthStore } from '../store/useStore'
 import toast from 'react-hot-toast'
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { signIn } = useAuthStore()
   
   const {
     register,
@@ -36,8 +34,18 @@ const SignIn = () => {
       const result = await response.json()
   
       if (response.ok) {
-        toast.success('Welcome back!')
-        navigate('/')
+        // Store login info
+        localStorage.setItem("userEmail", result.email)
+        localStorage.setItem("userRole", result.role)
+
+        toast.success(`Welcome back, ${result.email}!`)
+
+        // Redirect based on role
+        if (result.role === "admin") {
+          navigate('/admin')
+        } else {
+          navigate('/home')
+        }
       } else {
         toast.error(result.message || 'Invalid email or password')
       }
@@ -47,7 +55,6 @@ const SignIn = () => {
       setIsLoading(false)
     }
   }
-  
 
   return (
     <>
@@ -80,7 +87,13 @@ const SignIn = () => {
             <p className="text-gray-600">Sign in to your account to continue shopping</p>
           </div>
 
-          <motion.form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl shadow-xl p-8 space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+          <motion.form 
+            onSubmit={handleSubmit(onSubmit)} 
+            className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
               <div className="relative">
@@ -122,7 +135,13 @@ const SignIn = () => {
               <Link to="/forgot-password" className="text-sm text-purple-600 hover:text-purple-500 font-medium">Forgot password?</Link>
             </div>
 
-            <motion.button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <motion.button 
+              type="submit" 
+              disabled={isLoading} 
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" 
+              whileHover={{ scale: 1.02 }} 
+              whileTap={{ scale: 0.98 }}
+            >
               {isLoading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : (<><span>Sign In</span><ArrowRight className="ml-2 w-4 h-4" /></>)}
             </motion.button>
 
