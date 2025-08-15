@@ -20,15 +20,34 @@ const SignUp = () => {
   const onSubmit = async (data) => {
     setIsLoading(true)
     try {
-      await signUp(data.name, data.email, data.password)
-      toast.success('Account created! Please sign in.')
-      navigate('/signin')
-    } catch {
-      toast.error('Could not create account')
+      const response = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          password: data.password
+        })
+      })
+  
+      const result = await response.json()
+  
+      if (response.ok) {
+        toast.success("Account created! Please sign in.")
+        navigate("/signin")
+      } else {
+        toast.error(result.message || "Could not create account")
+      }
+    } catch (err) {
+      toast.error("Something went wrong")
     } finally {
       setIsLoading(false)
     }
   }
+  
 
   return (
     <>

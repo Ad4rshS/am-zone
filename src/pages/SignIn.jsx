@@ -22,15 +22,32 @@ const SignIn = () => {
   const onSubmit = async (data) => {
     setIsLoading(true)
     try {
-      await signIn(data.email, data.password)
-      toast.success('Welcome back!')
-      navigate('/')
+      const response = await fetch("/api/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password
+        })
+      })
+  
+      const result = await response.json()
+  
+      if (response.ok) {
+        toast.success('Welcome back!')
+        navigate('/')
+      } else {
+        toast.error(result.message || 'Invalid email or password')
+      }
     } catch (err) {
-      toast.error('Invalid email or password')
+      toast.error('Something went wrong')
     } finally {
       setIsLoading(false)
     }
   }
+  
 
   return (
     <>
